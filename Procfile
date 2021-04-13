@@ -1,1 +1,1 @@
-web: ./kraicklist_huzairuje_linux_amd64 -port=80
+web: ./kraicklist_huzairuje_linux_amd64 -port=3001
