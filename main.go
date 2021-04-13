@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,7 +13,27 @@ import (
 	"strings"
 )
 
+type Searcher struct {
+	records []Record
+}
+
+type Record struct {
+	ID        int64    `json:"id"`
+	Title     string   `json:"title"`
+	Content   string   `json:"content"`
+	ThumbURL  string   `json:"thumb_url"`
+	Tags      []string `json:"tags"`
+	UpdatedAt int64    `json:"updated_at"`
+	ImageURLs []string `json:"image_urls"`
+}
+
+var (
+	port = flag.Int("port", 3001, "Port")
+)
+
 func main() {
+	//parse falg from go run argument
+	flag.Parse()
 	// initialize searcher
 	searcher := &Searcher{}
 	err := searcher.Load("data.gz")
@@ -23,14 +44,9 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
 	http.HandleFunc("/search", handleSearch(searcher))
-	// define port, we need to set it as env for Heroku deployment
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "3001"
-	}
 	// start server
-	fmt.Printf("Server is listening on %s...", port)
-	err = http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+	fmt.Printf("Server is listening on %v...", *port)
+	err = http.ListenAndServe(fmt.Sprintf(":%v", *port), nil)
 	if err != nil {
 		log.Fatalf("unable to start server due: %v", err)
 	}
@@ -43,14 +59,14 @@ func handleSearch(s *Searcher) http.HandlerFunc {
 			q := r.URL.Query().Get("q")
 			if len(q) == 0 {
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("missing search query in query params"))
+				w.Write([]byte("Well, You can search another thing here..."))
 				return
 			}
 			// search relevant records
 			records, err := s.Search(q)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(err.Error()))
+				w.Write([]byte("Oops, Well this is Unexpected..."))
 				return
 			}
 			// output success response
@@ -61,10 +77,6 @@ func handleSearch(s *Searcher) http.HandlerFunc {
 			w.Write(buf.Bytes())
 		},
 	)
-}
-
-type Searcher struct {
-	records []Record
 }
 
 func (s *Searcher) Load(filepath string) error {
@@ -103,14 +115,4 @@ func (s *Searcher) Search(query string) ([]Record, error) {
 		}
 	}
 	return result, nil
-}
-
-type Record struct {
-	ID        int64    `json:"id"`
-	Title     string   `json:"title"`
-	Content   string   `json:"content"`
-	ThumbURL  string   `json:"thumb_url"`
-	Tags      []string `json:"tags"`
-	UpdatedAt int64    `json:"updated_at"`
-	ImageURLs []string `json:"image_urls"`
 }

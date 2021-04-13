@@ -9,11 +9,13 @@
 </head>
 
 <body>
-    <div>
-        <form id="form" autocomplete="off">
-            <input type="text" id="query" name="query">
-            <button type="submit">Search</button>
-        </form>
+    <div class="centered-wrapper">
+        <div>
+            <form id="form" autocomplete="off">
+                <input type="text" id="query" name="query">
+                <button type="submit">Search</button>
+            </form>
+        </div>
     </div>
     <div>
         <ul id="resultList"></ul>
@@ -26,7 +28,7 @@
                 const response = fetch(`/search?q=${data.query}`).then((response) => {
                     response.json().then((results) => {
                         if (!results) {
-                            alert(`No result for ${data.query}`);
+                            alert(`Sorry, we don't have result for ${data.query}`);
                             return
                         }
                         Controller.updateList(results);
@@ -55,6 +57,20 @@
         const form = document.getElementById("form");
         form.addEventListener("submit", Controller.search);
     </script>
+    <style>
+       .centered-wrapper {
+            position: relative;
+            text-align: center;
+        }
+        .centered-wrapper:before {
+            content: "";
+            position: relative;
+            display: inline-block;
+            width: 0; height: 100%;
+            vertical-align: middle;
+        }
+        
+    </style>
 </body>
 
 </html>
