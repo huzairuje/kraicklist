@@ -28,7 +28,7 @@ type Record struct {
 }
 
 var (
-	port = flag.Int("port", 3001, "Port")
+	port = flag.Int("port", 8080, "Port")
 )
 
 func main() {

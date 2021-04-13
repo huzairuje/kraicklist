@@ -1,1 +1,1 @@
-web: ./kraicklist_huzairuje_linux_amd64 $PORT
+web: bin/kraicklist
