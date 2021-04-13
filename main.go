@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -27,13 +26,7 @@ type Record struct {
 	ImageURLs []string `json:"image_urls"`
 }
 
-var (
-	port = flag.Int("port", 8080, "Port")
-)
-
 func main() {
-	//parse falg from go run argument
-	flag.Parse()
 	// initialize searcher
 	searcher := &Searcher{}
 	err := searcher.Load("data.gz")
@@ -45,8 +38,12 @@ func main() {
 	http.Handle("/", fs)
 	http.HandleFunc("/search", handleSearch(searcher))
 	// start server
-	fmt.Printf("Server is listening on %v...", *port)
-	err = http.ListenAndServe(fmt.Sprintf(":%v", *port), nil)
+	port := os.Getenv("PORT")
+	if err != nil {
+		port = "3000"
+	}
+	fmt.Printf("Server is listening on %v...", port)
+	err = http.ListenAndServe(fmt.Sprintf(":%v", port), nil)
 	if err != nil {
 		log.Fatalf("unable to start server due: %v", err)
 	}
