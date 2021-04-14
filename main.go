@@ -56,13 +56,15 @@ func handleSearch(s *Searcher) http.HandlerFunc {
 			q := r.URL.Query().Get("q")
 			if len(q) == 0 {
 				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("Well, You can search another thing here..."))
+				w.Header().Set("Content-Type", "application/json")
+				w.Write([]byte("Well, Maybe You can search thing here"))
 				return
 			}
 			// search relevant records
 			records, err := s.Search(q)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
+				w.Header().Set("Content-Type", "application/json")
 				w.Write([]byte("Oops, Well this is Unexpected..."))
 				return
 			}
@@ -70,6 +72,7 @@ func handleSearch(s *Searcher) http.HandlerFunc {
 			buf := new(bytes.Buffer)
 			encoder := json.NewEncoder(buf)
 			encoder.Encode(records)
+			w.WriteHeader(http.StatusOK)
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(buf.Bytes())
 		},

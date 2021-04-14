@@ -25,10 +25,16 @@
             search: (ev) => {
                 ev.preventDefault();
                 const data = Object.fromEntries(new FormData(form));
+                dataQuery = `${data.query}`;
+                if (dataQuery === null || dataQuery === "") {
+                    resultList.innerHTML = "<li><div><h3>Well, You can actually search thing here, try some words!</h3></div></li>";
+                    return
+                }
                 const response = fetch(`/search?q=${data.query}`).then((response) => {
                     response.json().then((results) => {
                         if (!results) {
-                            alert(`Sorry, we don't have result for ${data.query}`);
+                            console.log(`${data.query}`)
+                            resultList.innerHTML = "<li><div><h3>Sorry, we don't have result for "+dataQuery+"</h3></div></li>";
                             return
                         }
                         Controller.updateList(results);
