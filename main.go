@@ -40,6 +40,7 @@ func main() {
 	http.HandleFunc("/search", handleSearch(searcher))
 	http.HandleFunc("/autocomplete", handleDataJson())
 	// start server
+	// port := 3000
 	port := os.Getenv("PORT")
 	if err != nil {
 		port = "3000"
