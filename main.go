@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -37,6 +38,7 @@ func main() {
 	fs := http.FileServer(http.Dir("./static"))
 	http.Handle("/", fs)
 	http.HandleFunc("/search", handleSearch(searcher))
+	http.HandleFunc("/autocomplete", handleDataJson())
 	// start server
 	port := os.Getenv("PORT")
 	if err != nil {
@@ -53,15 +55,15 @@ func handleSearch(s *Searcher) http.HandlerFunc {
 	return http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
 			// fetch query string from query params
-			q := r.URL.Query().Get("q")
-			if len(q) == 0 {
+			queryWords := r.URL.Query().Get("term")
+			if len(queryWords) == 0 {
 				w.WriteHeader(http.StatusBadRequest)
 				w.Header().Set("Content-Type", "application/json")
 				w.Write([]byte("Well, Maybe You can search thing here"))
 				return
 			}
 			// search relevant records
-			records, err := s.Search(q)
+			records, err := s.Search(queryWords)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				w.Header().Set("Content-Type", "application/json")
@@ -75,6 +77,29 @@ func handleSearch(s *Searcher) http.HandlerFunc {
 			w.WriteHeader(http.StatusOK)
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(buf.Bytes())
+		},
+	)
+}
+
+func handleDataJson() http.HandlerFunc {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			// Set cache default expiring to 30days and which purges expired items every 24h
+
+			// Open our jsonFile
+			jsonFile, err := os.Open("data.json")
+			// if we os.Open returns an error then handle it
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println("Successfully Opened data.json")
+			// defer the closing of our data so that we can parse it later on
+			defer jsonFile.Close()
+
+			byteValue, _ := ioutil.ReadAll(jsonFile)
+			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(byteValue))
 		},
 	)
 }
